@@ -509,12 +509,32 @@
                         <div class="product-name">Woolen Thread</div>
                         <div class="product-price">$8.99</div>
                     </div>
+                    
+                    <div class="product-item" data-code="TC-105" data-name="Metallic Thread" data-price="15.99">
+                        <div class="product-code">TC-105</div>
+                        <div class="product-name">Metallic Thread</div>
+                        <div class="product-price">$15.99</div>
+                    </div>
+                    
+                    <div class="product-item" data-code="TC-106" data-name="Embroidery Thread" data-price="6.99">
+                        <div class="product-code">TC-106</div>
+                        <div class="product-name">Embroidery Thread</div>
+                        <div class="product-price">$6.99</div>
+                    </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="product-code"><i class="fas fa-barcode"></i> Product Code *</label>
-                        <input type="text" id="product-code" placeholder="Enter product code" required>
+                        <label for="product-select"><i class="fas fa-barcode"></i> Select Product *</label>
+                        <select id="product-select" required>
+                            <option value="">-- Select a product --</option>
+                            <option value="TC-101">TC-101 - Cotton Thread Spool ($4.99)</option>
+                            <option value="TC-102">TC-102 - Polyester Thread ($3.99)</option>
+                            <option value="TC-103">TC-103 - Silk Thread ($12.99)</option>
+                            <option value="TC-104">TC-104 - Woolen Thread ($8.99)</option>
+                            <option value="TC-105">TC-105 - Metallic Thread ($15.99)</option>
+                            <option value="TC-106">TC-106 - Embroidery Thread ($6.99)</option>
+                        </select>
                     </div>
                     
                     <div class="form-group">
@@ -562,7 +582,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const productItems = document.querySelectorAll('.product-item');
-            const productCodeInput = document.getElementById('product-code');
+            const productSelect = document.getElementById('product-select');
             const quantityInput = document.getElementById('quantity');
             const addToCartBtn = document.getElementById('add-to-cart');
             const cartItems = document.getElementById('cart-items');
@@ -576,7 +596,7 @@
             let cart = [];
             let selectedProduct = null;
             
-            // Product selection
+            // Product selection from grid
             productItems.forEach(item => {
                 item.addEventListener('click', function() {
                     productItems.forEach(i => i.classList.remove('selected'));
@@ -586,17 +606,39 @@
                         name: this.dataset.name,
                         price: parseFloat(this.dataset.price)
                     };
-                    productCodeInput.value = selectedProduct.code;
+                    // Update the dropdown to match the selected product
+                    productSelect.value = selectedProduct.code;
                 });
+            });
+            
+            // Product selection from dropdown
+            productSelect.addEventListener('change', function() {
+                const selectedCode = this.value;
+                if (selectedCode) {
+                    // Find the corresponding product in the grid
+                    const foundProduct = Array.from(productItems).find(item => item.dataset.code === selectedCode);
+                    if (foundProduct) {
+                        productItems.forEach(i => i.classList.remove('selected'));
+                        foundProduct.classList.add('selected');
+                        selectedProduct = {
+                            code: foundProduct.dataset.code,
+                            name: foundProduct.dataset.name,
+                            price: parseFloat(foundProduct.dataset.price)
+                        };
+                    }
+                } else {
+                    productItems.forEach(i => i.classList.remove('selected'));
+                    selectedProduct = null;
+                }
             });
             
             // Add to cart functionality
             addToCartBtn.addEventListener('click', function() {
-                const code = productCodeInput.value.trim();
+                const code = productSelect.value;
                 const quantity = parseInt(quantityInput.value);
                 
                 if (!code) {
-                    alert('Please select a product or enter a product code');
+                    alert('Please select a product');
                     return;
                 }
                 
@@ -605,12 +647,12 @@
                     return;
                 }
                 
-                // If a product was selected from the grid, use its details
+                // Get product details
                 let product;
                 if (selectedProduct && selectedProduct.code === code) {
                     product = selectedProduct;
                 } else {
-                    // For manually entered codes, try to find the product
+                    // For manually selected products from dropdown
                     const foundProduct = Array.from(productItems).find(item => item.dataset.code === code);
                     if (foundProduct) {
                         product = {
@@ -645,8 +687,8 @@
                 
                 // Reset selection
                 productItems.forEach(i => i.classList.remove('selected'));
+                productSelect.value = '';
                 selectedProduct = null;
-                productCodeInput.value = '';
                 quantityInput.value = '1';
             });
             
